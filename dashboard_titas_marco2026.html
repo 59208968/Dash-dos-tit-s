@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Titãs — Março 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10; --surface: #11141b; --card: #161b25; --border: #1e2535;
+    --accent: #f5a623; --accent2: #e0451b; --green: #22d37a; --blue: #4da6ff;
+    --muted: #4a5568; --text: #e2e8f0; --text2: #8899aa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 0 0 48px; }
+
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #1a2235 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo-area { display: flex; align-items: baseline; gap: 14px; }
+  .logo-area h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 2px; color: var(--accent); }
+  .logo-area span { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--text2); letter-spacing: 1px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .badge { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; color: var(--text2); }
+  .badge strong { font-size: 0.98rem; }
+  .badge.warn strong { color: var(--accent2); }
+  .badge.info strong { color: var(--blue); }
+
+  .status-bar {
+    display: flex; align-items: center; gap: 10px; padding: 9px 40px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    font-size: 0.73rem; font-family: 'JetBrains Mono', monospace; color: var(--text2);
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .status-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+  #sync-btn { margin-left: auto; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 4px 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; cursor: pointer; transition: all .2s; }
+  #sync-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .tab-bar { display: flex; gap: 6px; padding: 18px 40px 0; border-bottom: 1px solid var(--border); }
+  .tab { padding: 9px 20px; border-radius: 8px 8px 0 0; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1px solid transparent; border-bottom: none; color: var(--text2); background: transparent; transition: all .2s; }
+  .tab:hover { color: var(--text); background: var(--surface); }
+  .tab.active { background: var(--card); border-color: var(--border); color: var(--accent); }
+
+  main { padding: 28px 40px; }
+
+  .squad-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 28px; }
+  .kpi-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; position: relative; overflow: hidden; }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); border-radius:14px 14px 0 0; }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.blue::before { background: var(--blue); }
+  .kpi-card.red::before { background: var(--accent2); }
+  .kpi-label { font-size: 0.67rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
+  .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.85rem; letter-spacing: 1px; }
+  .kpi-sub { font-size: 0.7rem; color: var(--text2); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; letter-spacing: 2px; color: var(--text2); margin-bottom: 14px; }
+
+  /* VENDEDOR CARDS */
+  .vendedor-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 28px; }
+  .vendedor-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: transform .2s, border-color .2s; }
+  .vendedor-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .vc-header { padding: 14px 16px 10px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); }
+  .vc-name { font-weight: 700; font-size: 0.92rem; }
+  .vc-nivel { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 0.62rem; font-family: 'JetBrains Mono', monospace; color: var(--text2); }
+  /* LINEAR HIGHLIGHT */
+  .vc-linear {
+    background: linear-gradient(135deg, rgba(245,166,35,.14) 0%, rgba(245,166,35,.04) 100%);
+    border-bottom: 1px solid rgba(245,166,35,.2);
+    padding: 16px; text-align: center;
+  }
+  .vc-linear-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--accent); opacity: .85; margin-bottom: 4px; }
+  .vc-linear-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.55rem; color: var(--accent); letter-spacing: 1px; line-height: 1; }
+  .vc-linear-sub { font-size: 0.6rem; color: var(--text2); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .vc-body { padding: 12px 16px; }
+  .vc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .vc-row-label { font-size: 0.66rem; color: var(--text2); text-transform: uppercase; letter-spacing: .7px; }
+  .vc-row-val { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  .vc-progress-bg { width: 100%; height: 4px; background: var(--surface); border-radius: 99px; overflow: hidden; margin-bottom: 5px; }
+  .vc-progress-fill { height: 100%; border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+  .vc-pct { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; text-align: right; }
+  .pos { color: var(--green); } .neg { color: var(--accent2); }
+
+  /* RANKING */
+  .ranking-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-bottom: 28px; }
+  .rank-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; text-align: center; transition: transform .2s; }
+  .rank-card:hover { transform: translateY(-3px); }
+  .rank-pos { font-family: 'Bebas Neue', sans-serif; font-size: 2.1rem; line-height:1; color: var(--muted); margin-bottom: 6px; }
+  .rank-pos.gold { color:#f5c542; } .rank-pos.silver { color:#aab4c0; } .rank-pos.bronze { color:#cd7f32; }
+  .rank-name { font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
+  .rank-val { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--green); }
+  .rank-pct { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; color: var(--text2); margin-top: 3px; }
+
+  /* TABLE */
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 28px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--surface); }
+  th { padding: 12px 16px; text-align: left; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 1.1px; color: var(--text2); font-weight: 600; border-bottom: 1px solid var(--border); }
+  th:not(:first-child) { text-align: right; }
+  td { padding: 13px 16px; font-size: 0.83rem; border-bottom: 1px solid var(--border); }
+  td:not(:first-child) { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  tr.squad-total td { background: rgba(245,166,35,.05); font-weight: 600; }
+  tr.squad-total td:first-child { font-family: 'Bebas Neue', sans-serif; color: var(--accent); font-size: 0.92rem; letter-spacing: 1px; }
+  .progress-wrap { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .progress-bar-bg { width: 70px; height: 4px; background: var(--surface); border-radius: 99px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 99px; transition: width .6s; }
+
+  /* SHEETS CONFIG */
+  .sheets-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 26px 30px; }
+  .sheets-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; color: var(--blue); margin-bottom: 6px; }
+  .sheets-box p { font-size: 0.78rem; color: var(--text2); margin-bottom: 16px; line-height: 1.7; }
+  .sheets-input-row { display: flex; gap: 10px; align-items: center; }
+  .sheets-input-row input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 10px 14px; outline: none; transition: border-color .2s; }
+  .sheets-input-row input:focus { border-color: var(--blue); }
+  .btn-connect { background: var(--blue); color: #0a0c10; border: none; border-radius: 8px; padding: 10px 24px; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1.5px; cursor: pointer; transition: opacity .2s; white-space: nowrap; }
+  .btn-connect:hover { opacity: .85; }
+  .sheets-steps { margin-top: 16px; font-size: 0.72rem; color: var(--text2); line-height: 2.1; font-family: 'JetBrains Mono', monospace; background: var(--surface); border-radius: 8px; padding: 14px 18px; }
+  .sheets-steps strong { color: var(--text); }
+
+  footer { text-align: center; padding-top: 32px; font-size: 0.66rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  @media(max-width:1100px){ .vendedor-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(max-width:800px){ header{padding:14px 20px;} main{padding:18px 20px;} .tab-bar{padding:12px 20px 0;} .squad-row{grid-template-columns:repeat(2,1fr);} .vendedor-grid{grid-template-columns:repeat(2,1fr);} .ranking-row{grid-template-columns:repeat(3,1fr);} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <h1>⚡ TITÃS</h1>
+    <span>DASHBOARD DE VENDAS — MARÇO 2026</span>
+  </div>
+  <div class="header-right">
+    <div class="badge warn">Dias restantes: <strong id="dias-val">—</strong></div>
+    <div class="badge info">Semana: <strong id="semana-val">—</strong></div>
+    <div class="badge">Sync: <strong id="sync-time">—</strong></div>
+  </div>
+</header>
+
+<div class="status-bar">
+  <div class="status-dot" id="status-dot"></div>
+  <span id="status-text">Sem conexão com Google Sheets — configure abaixo</span>
+  <button id="sync-btn" onclick="syncSheets()">↻ Atualizar agora</button>
+</div>
+
+<div class="tab-bar">
+  <button class="tab" onclick="setView('sem1')" id="tab-sem1">Semana 1</button>
+  <button class="tab" onclick="setView('sem2')" id="tab-sem2">Semana 2</button>
+  <button class="tab" onclick="setView('sem3')" id="tab-sem3">Semana 3</button>
+  <button class="tab active" onclick="setView('mensal')" id="tab-mensal">Mês Completo</button>
+</div>
+
+<main>
+  <div class="squad-row" id="squad-kpis"></div>
+  <div class="section-title">⚡ RITMO LINEAR — R$ necessário por dia para bater a meta</div>
+  <div class="vendedor-grid" id="vendedor-cards"></div>
+  <div class="section-title">🏆 RANKING</div>
+  <div class="ranking-row" id="ranking"></div>
+  <div class="section-title">📊 CONSOLIDADO</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Vendedor</th>
+          <th>⚡ Linear/dia</th>
+          <th>Meta</th>
+          <th>Realizado</th>
+          <th>GAP</th>
+          <th>Atingimento</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-body"></tbody>
+    </table>
+  </div>
+
+  <div class="sheets-box">
+    <h3>🔗 Conectar ao Google Sheets</h3>
+    <p>Cole a URL de publicação da sua planilha. O dashboard buscará os dados automaticamente a cada 5 minutos — basta você atualizar o Sheets que o dashboard reflete na hora.</p>
+    <div class="sheets-input-row">
+      <input type="text" id="sheets-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" />
+      <button class="btn-connect" onclick="conectarSheets()">CONECTAR</button>
+    </div>
+    <div class="sheets-steps">
+      <strong>Como gerar a URL no Google Sheets:</strong><br>
+      1. Abra sua planilha → menu <strong>Arquivo → Compartilhar → Publicar na web</strong><br>
+      2. Selecione a aba <strong>Página1</strong> e o formato <strong>Valores separados por vírgula (.csv)</strong><br>
+      3. Clique em <strong>Publicar</strong> e copie a URL gerada<br>
+      4. Cole aqui acima e clique em <strong>CONECTAR</strong><br><br>
+      📌 O dashboard lê automaticamente: <strong>col A</strong> (nome) · <strong>col B</strong> (nível) · <strong>col C</strong> (linear/dia) · <strong>col H</strong> (meta mensal) · <strong>col P</strong> (total realizado) · <strong>linha 9 col C</strong> (dias restantes)
+    </div>
+  </div>
+</main>
+
+<footer>SQUAD TITÃS • INSIDE SALES • MARÇO 2026 • Conectado ao Google Sheets</footer>
+
+<script>
+const DEFAULTS = [
+  { nome:'Daniel',  nivel:'2', linear:9685.42,  meta_mensal:190280.96, realizado:6258  },
+  { nome:'Lincoln', nivel:'1', linear:9204.42,  meta_mensal:181219.96, realizado:6336  },
+  { nome:'Matheus', nivel:'3', linear:8133.58,  meta_mensal:199341.96, realizado:44804 },
+  { nome:'Paulo',   nivel:'7', linear:10037.50, meta_mensal:190712.44, realizado:0     },
+  { nome:'Thiago',  nivel:'2', linear:9719.21,  meta_mensal:190280.96, realizado:5616  },
+];
+const PCT_SEM = { sem1:0.1175, sem2:0.3125, sem3:0.5785, mensal:1.0 };
+
+let data = JSON.parse(JSON.stringify(DEFAULTS));
+let diasRestantes = 19;
+let currentView = 'mensal';
+let syncInterval = null;
+
+const fmt = v => 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtPct = v => (v*100).toFixed(1)+'%';
+const getMeta = (v,view) => v.meta_mensal * PCT_SEM[view];
+const barColor = pct => pct>=1?'var(--green)':pct>=.7?'var(--accent)':'var(--accent2)';
+
+// Load saved URL
+const savedUrl = localStorage.getItem('titas_sheets_url');
+if (savedUrl) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('sheets-url').value = savedUrl;
+    syncSheets();
+    startAutoSync();
+  });
+}
+
+function conectarSheets() {
+  const url = document.getElementById('sheets-url').value.trim();
+  if (!url) return;
+  localStorage.setItem('titas_sheets_url', url);
+  syncSheets();
+  startAutoSync();
+}
+
+function startAutoSync() {
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(syncSheets, 5*60*1000);
+}
+
+async function syncSheets() {
+  const url = (document.getElementById('sheets-url').value.trim()) || localStorage.getItem('titas_sheets_url');
+  if (!url) return;
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  txt.textContent = 'Sincronizando com Google Sheets...';
+  try {
+    const bust = url + (url.includes('?')?'&':'?') + '_t='+Date.now();
+    const res = await fetch(bust);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const csv = await res.text();
+    parseCSV(csv);
+    dot.className = 'status-dot live';
+    const now = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    txt.textContent = 'Google Sheets conectado — dados ao vivo';
+    document.getElementById('sync-time').textContent = now;
+    render();
+  } catch(e) {
+    dot.className = 'status-dot';
+    txt.textContent = 'Erro ao conectar — verifique a URL e se a planilha está publicada';
+    document.getElementById('sync-time').textContent = 'erro';
+  }
+}
+
+function parseCSV(csv) {
+  const rows = csv.split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g,'').trim()));
+  // Linha 9 (index 8) col C (index 2) = dias restantes
+  if (rows[8] && rows[8][2]) {
+    const d = parseFloat(rows[8][2]);
+    if (!isNaN(d)) diasRestantes = d;
+  }
+  // Linhas 3-7 (index 2..6) = vendedores
+  const nd = [];
+  for (let i=2; i<=6; i++) {
+    const r = rows[i];
+    if (!r || !r[0]) continue;
+    nd.push({
+      nome:        r[0].trim(),
+      nivel:       r[1] || '',
+      linear:      parseFloat(r[2])  || 0,
+      meta_mensal: parseFloat(r[7])  || 0,
+      realizado:   parseFloat(r[15]) || 0,
+    });
+  }
+  if (nd.length > 0) data = nd;
+}
+
+function setView(v) {
+  currentView = v;
+  ['sem1','sem2','sem3','mensal'].forEach(t =>
+    document.getElementById('tab-'+t).classList.toggle('active', t===v));
+  render();
+}
+
+function render() {
+  document.getElementById('dias-val').textContent = diasRestantes;
+  const lbs = {sem1:'1',sem2:'2',sem3:'3',mensal:'Mês'};
+  document.getElementById('semana-val').textContent = lbs[currentView];
+  renderKPIs(); renderCards(); renderRanking(); renderTabela();
+}
+
+function renderKPIs() {
+  const tMeta = data.reduce((s,v)=>s+getMeta(v,currentView),0);
+  const tReal = data.reduce((s,v)=>s+v.realizado,0);
+  const gap = tReal - tMeta;
+  const pct = tMeta>0?tReal/tMeta:0;
+  const tLinear = data.reduce((s,v)=>s+v.linear,0);
+  const lbs = {sem1:'Semana 1',sem2:'Semana 2',sem3:'Semana 3',mensal:'Mês'};
+  const items = [
+    {label:'Meta '+lbs[currentView], value:fmt(tMeta), sub:'5 vendedores', cls:''},
+    {label:'Realizado', value:fmt(tReal), sub:fmtPct(pct)+' da meta', cls:pct>=1?'green':pct>=.7?'':'red'},
+    {label:'GAP', value:fmt(Math.abs(gap)), sub:gap>=0?'✓ acima da meta':'✗ abaixo da meta', cls:gap>=0?'green':'red'},
+    {label:'⚡ Linear Squad/dia', value:fmt(tLinear), sub:diasRestantes+' dias restantes', cls:'blue'},
+  ];
+  document.getElementById('squad-kpis').innerHTML = items.map(i=>`
+    <div class="kpi-card ${i.cls}">
+      <div class="kpi-label">${i.label}</div>
+      <div class="kpi-value">${i.value}</div>
+      <div class="kpi-sub">${i.sub}</div>
+    </div>`).join('');
+}
+
+function renderCards() {
+  document.getElementById('vendedor-cards').innerHTML = data.map(v=>{
+    const meta = getMeta(v,currentView);
+    const real = v.realizado;
+    const gap = real-meta;
+    const pct = meta>0?real/meta:0;
+    const bc = barColor(pct);
+    const bw = Math.min(100,pct*100).toFixed(1);
+    return `
+    <div class="vendedor-card">
+      <div class="vc-header">
+        <span class="vc-name">${v.nome}</span>
+        <span class="vc-nivel">Nv ${v.nivel}</span>
+      </div>
+      <div class="vc-linear">
+        <div class="vc-linear-label">⚡ precisa vender / dia</div>
+        <div class="vc-linear-value">${fmt(v.linear)}</div>
+        <div class="vc-linear-sub">${diasRestantes} dias restantes</div>
+      </div>
+      <div class="vc-body">
+        <div class="vc-row"><span class="vc-row-label">Realizado</span><span class="vc-row-val">${fmt(real)}</span></div>
+        <div class="vc-row"><span class="vc-row-label">Meta</span><span class="vc-row-val">${fmt(meta)}</span></div>
+        <div class="vc-row"><span class="vc-row-label">GAP</span><span class="vc-row-val ${gap>=0?'pos':'neg'}">${gap>=0?'+':''}${fmt(gap)}</span></div>
+        <div class="vc-progress-bg"><div class="vc-progress-fill" style="width:${bw}%;background:${bc}"></div></div>
+        <div class="vc-pct" style="color:${bc}">${fmtPct(pct)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRanking() {
+  const sorted = [...data].map(v=>({...v,pct:getMeta(v,currentView)>0?v.realizado/getMeta(v,currentView):0})).sort((a,b)=>b.pct-a.pct);
+  const pc=['gold','silver','bronze','',''];
+  const pe=['🥇','🥈','🥉','4º','5º'];
+  document.getElementById('ranking').innerHTML = sorted.map((v,i)=>`
+    <div class="rank-card">
+      <div class="rank-pos ${pc[i]}">${pe[i]}</div>
+      <div class="rank-name">${v.nome}</div>
+      <div class="rank-val">${fmt(v.realizado)}</div>
+      <div class="rank-pct">${fmtPct(v.pct)} da meta</div>
+    </div>`).join('');
+}
+
+function renderTabela() {
+  let rows = data.map(v=>{
+    const meta=getMeta(v,currentView), real=v.realizado, gap=real-meta;
+    const pct=meta>0?real/meta:0, bc=barColor(pct), bw=Math.min(100,pct*100).toFixed(1);
+    return `<tr>
+      <td><strong>${v.nome}</strong> <span style="font-size:.65rem;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-left:6px">Nv ${v.nivel}</span></td>
+      <td style="color:var(--accent);font-weight:600">${fmt(v.linear)}</td>
+      <td>${fmt(meta)}</td>
+      <td>${fmt(real)}</td>
+      <td class="${gap>=0?'pos':'neg'}">${gap>=0?'+':''}${fmt(gap)}</td>
+      <td><div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${bw}%;background:${bc}"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:.76rem;color:${bc};min-width:44px;text-align:right">${fmtPct(pct)}</span></div></td>
+    </tr>`;
+  });
+  const tMeta=data.reduce((s,v)=>s+getMeta(v,currentView),0);
+  const tReal=data.reduce((s,v)=>s+v.realizado,0);
+  const tGap=tReal-tMeta, tPct=tMeta>0?tReal/tMeta:0;
+  const tLin=data.reduce((s,v)=>s+v.linear,0);
+  const bc=barColor(tPct), bw=Math.min(100,tPct*100).toFixed(1);
+  rows.push(`<tr class="squad-total">
+    <td>SQUAD TOTAL</td>
+    <td style="color:var(--accent);font-weight:700">${fmt(tLin)}</td>
+    <td>${fmt(tMeta)}</td><td>${fmt(tReal)}</td>
+    <td class="${tGap>=0?'pos':'neg'}">${tGap>=0?'+':''}${fmt(tGap)}</td>
+    <td><div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${bw}%;background:${bc}"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:.76rem;color:${bc};min-width:44px;text-align:right">${fmtPct(tPct)}</span></div></td>
+  </tr>`);
+  document.getElementById('tabela-body').innerHTML = rows.join('');
+}
+
+render();
+</script>
+</body>
+</html>
